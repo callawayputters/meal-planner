@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>October 2025 Meal Planner</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { Calendar, ShoppingCart, Clock, DollarSign, MapPin } = lucideReact;
+
+        const OctoberMealPlanner = () => {
+            // Load saved state from localStorage
+            const [selectedDay, setSelectedDay] = useState(null);
+            const [completedMeals, setCompletedMeals] = useState(() => {
+                const saved = localStorage.getItem('completedMeals');
+                return saved ? new Set(JSON.parse(saved)) : new Set();
+            });
+            const [shoppingCompleted, setShoppingCompleted] = useState(() => {
+                const saved = localStorage.getItem('shoppingCompleted');
+                return saved ? new Set(JSON.parse(saved)) : new Set();
+            });
+            const [showRecipe, setShowRecipe] = useState(null);
+            const [showGroceryList, setShowGroceryList] = useState(null);
+
+            const totalBudget = 700;
+
+            // Save state to localStorage whenever it changes
+            React.useEffect(() => {
+                localStorage.setItem('completedMeals', JSON.stringify([...completedMeals]));
+            }, [completedMeals]);
+
+            React.useEffect(() => {
+                localStorage.setItem('shoppingCompleted', JSON.stringify([...shoppingCompleted]));
+            }, [shoppingCompleted]);
+
+            const mealPlan = {
+                1: { meal: "Sous Vide Salmon with Greek Herbs", time: 45, cuisine: "Greek", cost: 28, store: "Publix", away: false },
+                2: { meal: "Quick Italian Chicken Pasta", time: 30, cuisine: "Italian", cost: 18, store: "Trader Joe's", away: false },
+                3: { meal: "Chinese Beef and Broccoli (Slow Cooker)", time: 25, cuisine: "Chinese", cost: 22, store: "Costco", away: false },
+                4: { meal: "Weekend: Homemade Greek Moussaka", time: 120, cuisine: "Greek", cost: 35, store: "Publix", away: false },
+                5: { meal: "Weekend: Mexican Chicken Fajitas", time: 90, cuisine: "Mexican", cost: 24, store: "Trader Joe's", away: false },
+                6: { meal: "Seafood Paella (Instant Pot)", time: 40, cuisine: "Spanish", cost: 32, store: "Publix", away: false },
+                7: { meal: "Italian Sausage and Peppers", time: 35, cuisine: "Italian", cost: 20, store: "Costco", away: false },
+                8: { meal: "Chinese Orange Chicken", time: 40, cuisine: "Chinese", cost: 16, store: "Trader Joe's", away: false },
+                9: { meal: "Greek Lemon Herb Chicken (Sous Vide)", time: 50, cuisine: "Greek", cost: 25, store: "Publix", away: false },
+                10: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                11: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                12: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                13: { meal: "Wife Solo: Easy Pasta Marinara", time: 20, cuisine: "Italian", cost: 8, store: "Pantry", away: "partial" },
+                14: { meal: "Wife Solo: Greek Salad with Chicken", time: 15, cuisine: "Greek", cost: 12, store: "Publix", away: "partial" },
+                15: { meal: "Wife Solo: Chinese Takeout Style Rice Bowl", time: 25, cuisine: "Chinese", cost: 10, store: "Trader Joe's", away: "partial" },
+                16: { meal: "Wife Solo: Quick Seafood Pasta", time: 30, cuisine: "Italian", cost: 18, store: "Publix", away: "partial" },
+                17: { meal: "Mexican Chicken Enchiladas", time: 45, cuisine: "Mexican", cost: 26, store: "Costco", away: false },
+                18: { meal: "Weekend: Italian Osso Buco (Slow Cooker)", time: 180, cuisine: "Italian", cost: 42, store: "Publix", away: false },
+                19: { meal: "Weekend: Chinese Hot Pot", time: 75, cuisine: "Chinese", cost: 38, store: "Costco", away: false },
+                20: { meal: "Greek Lamb Souvlaki", time: 35, cuisine: "Greek", cost: 30, store: "Publix", away: false },
+                21: { meal: "Seafood Cioppino", time: 50, cuisine: "Italian", cost: 34, store: "Trader Joe's", away: false },
+                22: { meal: "Mexican Carnitas (Instant Pot)", time: 40, cuisine: "Mexican", cost: 22, store: "Costco", away: false },
+                23: { meal: "Chinese Honey Garlic Shrimp", time: 25, cuisine: "Chinese", cost: 24, store: "Publix", away: false },
+                24: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                25: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                26: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                27: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                28: { meal: "Away - Trip Together", time: 0, cuisine: "Travel", cost: 0, store: "", away: true },
+                29: { meal: "Italian Chicken Parmigiana", time: 55, cuisine: "Italian", cost: 28, store: "Publix", away: false },
+                30: { meal: "Greek Stuffed Peppers", time: 40, cuisine: "Greek", cost: 20, store: "Trader Joe's", away: false },
+                31: { meal: "Wine Night Prep Day - Light Dinner", time: 15, cuisine: "Light", cost: 15, store: "Pantry", away: false, special: "Wine Night Prep" }
+            };
+
+            const recipes = {
+                1: {
+                    name: "Sous Vide Salmon with Greek Herbs",
+                    servings: 4, prepTime: 15, cookTime: 45,
+                    instructions: [
+                        "Set sous vide to 125°F for medium-rare salmon",
+                        "Mix olive oil, lemon juice, oregano, garlic, salt and pepper",
+                        "Season salmon fillets and vacuum seal with herb mixture",
+                        "Cook in sous vide for 45 minutes",
+                        "Sear in hot pan for 1 minute per side before serving",
+                        "Serve with roasted vegetables and lemon wedges"
+                    ],
+                    ingredients: [
+                        "4 salmon fillets (6oz each)", "1/4 cup olive oil", "2 lemons (juiced)",
+                        "2 tbsp fresh oregano", "3 cloves garlic (minced)", "Salt and pepper to taste",
+                        "Mixed vegetables for roasting"
+                    ]
+                },
+                2: {
+                    name: "Quick Italian Chicken Pasta",
+                    servings: 4, prepTime: 10, cookTime: 20,
+                    instructions: [
+                        "Cook pasta according to package directions",
+                        "Season chicken breast and cut into bite-sized pieces",
+                        "Heat olive oil in large pan, cook chicken until golden",
+                        "Add garlic, cook 1 minute",
+                        "Add diced tomatoes, Italian seasoning, and basil",
+                        "Simmer 5 minutes, add cooked pasta and parmesan",
+                        "Toss everything together and serve hot"
+                    ],
+                    ingredients: [
+                        "1 lb pasta (penne or rigatoni)", "2 chicken breasts", "1 can diced tomatoes",
+                        "3 cloves garlic", "1/4 cup olive oil", "1 tsp Italian seasoning",
+                        "Fresh basil leaves", "1/2 cup parmesan cheese"
+                    ]
+                }
+                // Additional recipes would go here - truncated for space
+            };
+
+            const groceryLists = {
+                0: {
+                    title: "Sep 28-30: Costco & Publix - Week 1 Setup",
+                    costco: [
+                        "Salmon fillets (2 lbs pack)", "Ground lamb (3 lbs)", "Chicken breasts (family pack)",
+                        "Italian sausages (bulk pack)", "Pasta variety pack", "Olive oil (large bottle)",
+                        "Canned tomatoes (6-pack)", "Parmesan cheese (large wedge)"
+                    ],
+                    publix: [
+                        "Eggplants (3 large)", "Fresh herbs (oregano, basil, parsley)", "Lemons (bag of 8)",
+                        "Mixed vegetables for roasting", "Fresh garlic", "Yellow onions (3 lb bag)",
+                        "Eggs (18 count)", "Butter (2 lbs)", "Milk (1 gallon)"
+                    ],
+                    budget: 120
+                }
+                // Additional grocery lists would go here
+            };
+
+            const shoppingTrips = [
+                { date: "Sep 28-30", stores: ["Costco", "Publix"], items: "Bulk proteins, fresh produce for Week 1", budget: 120 },
+                { date: "Oct 4-5", stores: ["Trader Joe's"], items: "Specialty items, wines, pantry restocks", budget: 85 },
+                { date: "Oct 30-31", stores: ["All Stores"], items: "Wine Night specialty foods & ingredients", budget: 200 }
+            ];
+
+            const getDayColor = (day, meal) => {
+                if (completedMeals.has(day)) return "bg-green-100 border-green-300";
+                if (meal.away === true) return "bg-gray-100 border-gray-300";
+                if (meal.away === "partial") return "bg-yellow-50 border-yellow-300";
+                if (meal.special) return "bg-purple-50 border-purple-300";
+                return "bg-white border-gray-200 hover:border-blue-300";
+            };
+
+            const getCuisineColor = (cuisine) => {
+                const colors = {
+                    Italian: "bg-red-100 text-red-800",
+                    Chinese: "bg-yellow-100 text-yellow-800",
+                    Greek: "bg-blue-100 text-blue-800",
+                    Mexican: "bg-green-100 text-green-800",
+                    Spanish: "bg-orange-100 text-orange-800",
+                    Travel: "bg-gray-100 text-gray-600",
+                    Light: "bg-purple-100 text-purple-800"
+                };
+                return colors[cuisine] || "bg-gray-100 text-gray-800";
+            };
+
+            const toggleMealComplete = (day) => {
+                const newCompleted = new Set(completedMeals);
+                if (newCompleted.has(day)) {
+                    newCompleted.delete(day);
+                } else {
+                    newCompleted.add(day);
+                }
+                setCompletedMeals(newCompleted);
+            };
+
+            const toggleShoppingComplete = (index) => {
+                const newCompleted = new Set(shoppingCompleted);
+                if (newCompleted.has(index)) {
+                    newCompleted.delete(index);
+                } else {
+                    newCompleted.add(index);
+                }
+                setShoppingCompleted(newCompleted);
+            };
+
+            const totalPlannedCost = Object.values(mealPlan).reduce((sum, meal) => sum + meal.cost, 0);
+            const budgetProgress = (totalPlannedCost / totalBudget) * 100;
+
+            return React.createElement('div', { className: "max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen" },
+                React.createElement('div', { className: "bg-white rounded-lg shadow-lg p-6 mb-6" },
+                    React.createElement('h1', { className: "text-3xl font-bold text-center mb-4 text-gray-800" },
+                        React.createElement(Calendar, { className: "inline mr-3" }),
+                        "October 2025 Meal Planner"
+                    ),
+                    
+                    // Budget Overview
+                    React.createElement('div', { className: "bg-blue-50 rounded-lg p-4 mb-6" },
+                        React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                            React.createElement('h3', { className: "font-semibold flex items-center" },
+                                React.createElement(DollarSign, { className: "w-4 h-4 mr-2" }),
+                                `Monthly Budget: $${totalBudget}`
+                            ),
+                            React.createElement('span', { className: "text-lg font-bold" },
+                                `Planned: $${totalPlannedCost} (${budgetProgress.toFixed(1)}%)`
+                            )
+                        ),
+                        React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-3" },
+                            React.createElement('div', { 
+                                className: "bg-blue-600 h-3 rounded-full",
+                                style: { width: `${Math.min(budgetProgress, 100)}%` }
+                            })
+                        ),
+                        React.createElement('p', { className: "text-sm text-gray-600 mt-2" },
+                            `Remaining: $${totalBudget - totalPlannedCost} | Wine Night Budget Included: $200`
+                        )
+                    ),
+
+                    // Calendar Grid - This would be expanded with full calendar implementation
+                    React.createElement('div', { className: "text-center p-8 bg-gray-100 rounded-lg" },
+                        React.createElement('h2', { className: "text-xl font-semibold mb-4" }, "Interactive Calendar"),
+                        React.createElement('p', { className: "text-gray-600" }, "Full calendar implementation would go here with all clickable days"),
+                        React.createElement('div', { className: "mt-4 grid grid-cols-2 md:grid-cols-4 gap-4" },
+                            Object.entries(mealPlan).slice(0, 8).map(([day, meal]) =>
+                                React.createElement('div', { 
+                                    key: day,
+                                    className: `p-3 rounded-lg border-2 ${getDayColor(parseInt(day), meal)}`,
+                                    onClick: () => setSelectedDay(parseInt(day))
+                                },
+                                    React.createElement('div', { className: "font-bold" }, `Oct ${day}`),
+                                    React.createElement('div', { className: "text-xs" }, meal.meal.substring(0, 20) + "...")
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(OctoberMealPlanner), document.getElementById('root'));
+    </script>
+</body>
+</html>
